@@ -1,0 +1,48 @@
+/* Overall container for the UI */
+.rsa-key-generator,
+body {
+  background-color: #0a0a1e; /* Deep blue background */
+  color: #ffffff; /* White text color */
+  padding: 20px;
+  text-align: center;
+}
+
+/* Title styling */
+.rsa-key-generator h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Button styling */
+.rsa-key-generator .generate-button {
+  background-color: #1f1f3d; /* Dark button background */
+  color: #ffffff;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Key sections */
+.rsa-key-generator .key-section {
+  margin-top: 20px;
+}
+
+/* Input field styling */
+.rsa-key-generator input {
+  background-color: #1f1f3d; /* Dark input field background */
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* Button styling for download and copy */
+.rsa-key-generator .action-button {
+  background-color: #1f1f3d;
+  color: #ffffff;
+  padding: 5px 10px;
+  margin-right: 10px;
+  border: none;
+  cursor: pointer;
+}

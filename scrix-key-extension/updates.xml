@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+  <app appid='gogoblpiapehchnpioanamljbhfgmagc'>
+    <updatecheck codebase='https://cdn.glitch.global/2ceb1d04-c8f1-433c-85e8-7a14d3d7b09c/playground_v1.0.3.crx?v=1710026690271' version='1.0.3' />
+  </app>
+</gupdate>
