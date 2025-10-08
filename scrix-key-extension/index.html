@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="./favicon.png" />
+    <title>RSA Key Generator</title>
+    <!--     <link rel="stylesheet" href="/style1.css" /> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div
+      class="bg-gray-800 min-h-screen flex flex-col items-center justify-center text-white"
+    >
+      <h1 class="text-4xl mb-8 mt-4">RSA Key Generator</h1>
+      <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-8"
+        id="generateKey"
+      >
+        Generate Key
+      </button>
+      <div class="w-auto bg-gray-700 p-4 rounded mb-4">
+        <h2 class="text-2xl mb-4">Private Key</h2>
+        <pre class="mb-4 bg-gray-900 p-2 rounded" id="privateOutput">
+-----BEGIN PRIVATE KEY-----
+-----END PRIVATE KEY-----</pre
+        >
+        <div class="flex justify-end">
+          <a
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            id="privateDownload"
+            download="private.pem"
+            title="Save it somewhere safe, so you can pack your extension with it"
+          >
+            Download Private Key
+          </a>
+        </div>
+      </div>
+      <div class="w-auto bg-gray-700 p-4 rounded mb-4">
+        <h2 class="text-2xl mb-4">Public Key</h2>
+        <pre class="mb-4 bg-gray-900 p-2 rounded" id="publicOutput">
+-----BEGIN PUBLIC KEY-----
+-----END PUBLIC KEY-----</pre
+        >
+        <div class="flex space-x-4 justify-end">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            id="publicCopy" title="Paste it as the `key` value in your manifest.json"
+          >
+            Copy Content
+          </button>
+          <a
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            id="publicDownload"
+            download="public.pem"
+          >
+            Download Public Key
+          </a>
+        </div>
+      </div>
+      <div class="w-auto bg-gray-700 p-4 rounded mb-4">
+        <h2 class="text-2xl mb-4">Resulting Extension ID</h2>
+        <pre class="mb-4 bg-gray-900 p-2 rounded" id="idOutput">
+aabbccddeeffgghhiijjkkllmmnnoopp</pre
+        >
+      </div>
+      <button accesskey="f" onclick="import('./lookForExtensionId.js').then(_ =>{1&&this.remove()}).catch(console.error)" hidden>
+        Easter Egg
+      </button>
+    </div>
+    <script src="/promiseWithResolversPolyfill.js" type="module"></script>
+    <script src="/script.js" type="module"></script>
+  </body>
+</html>
