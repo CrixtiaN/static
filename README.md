@@ -1,3 +1,3 @@
 I miss glitch.com 😢
 
-[Scrix Extension Key](/scrix-extension-key)
+[Scrix Key Extension Generator](scrix-key-extension)
