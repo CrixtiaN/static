@@ -24,7 +24,7 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
         }
-        .tag {
+        .tag, #existing-tags-list > span {
             cursor: pointer;
             transition: background-color 0.1s;
         }
@@ -52,16 +52,22 @@
         <!-- Mensaje de Estado Temporal -->
         <div id="status-message" class="fixed top-0 left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-lg shadow-xl text-center z-50 hidden transition-all duration-300 ease-out opacity-0"></div>
 
-        <!-- Encabezado y Botón de Configuración (Modal) -->
+        <!-- Encabezado, Contador y Botón de Configuración (Modal) -->
         <div class="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
             <h1 class="text-4xl font-extrabold text-gray-100">Bloc de Notas con Etiquetas</h1>
-            <!-- Botón para abrir el Modal de Gestión -->
-            <button id="open-modal-btn" class="text-gray-400 hover:text-white transition duration-150 p-2 rounded-full hover:bg-gray-700" aria-label="Abrir gestión de datos">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.962.585 2.038.585 3 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </button>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Contador de Entradas Totales -->
+                <span id="total-notes-count" class="text-xl font-bold text-blue-400">Total: 0</span>
+                
+                <!-- Botón para abrir el Modal de Gestión -->
+                <button id="open-modal-btn" class="text-gray-400 hover:text-white transition duration-150 p-2 rounded-full hover:bg-gray-700" aria-label="Abrir gestión de datos">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.962.585 2.038.585 3 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+            </div>
         </div>
         <p class="text-gray-400 mb-6">Escribe tus ideas, asígnales etiquetas y filtra al instante. Tus notas se guardan **localmente** en tu navegador.</p>
 
@@ -77,7 +83,15 @@
                 class="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-4 transition-colors duration-300"
                 aria-label="Etiquetas de la nota">
             
-            <div class="flex space-x-3">
+            <!-- Nube de Etiquetas Únicas (Feature 3) -->
+            <div id="unique-tags-cloud" class="mt-4 pt-3 border-t border-gray-700 hidden">
+                <p class="text-sm text-gray-400 mb-2 font-medium">Etiquetas existentes (clic para añadir al campo de arriba):</p>
+                <div id="existing-tags-list" class="flex flex-wrap gap-2">
+                    <!-- Las etiquetas únicas se renderizarán aquí -->
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-4">
                 <button id="submit-btn" class="flex-grow bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-150">
                     Guardar Nota
                 </button>
@@ -89,7 +103,21 @@
 
         <!-- Barra de Filtrado -->
         <div class="bg-gray-800 p-4 rounded-xl shadow-inner mb-8 border border-gray-700 transition-colors duration-300">
-            <h2 class="text-xl font-semibold text-gray-200 mb-3">Filtrar por Etiquetas (Múltiples)</h2>
+            <h2 class="text-xl font-semibold text-gray-200 mb-3">Filtrar por Etiquetas</h2>
+            
+            <!-- Lógica de Filtrado AND/OR (Feature 2) -->
+            <div class="flex items-center space-x-6 mb-4 pb-2 border-b border-gray-700">
+                <span class="text-gray-400 font-medium">Lógica:</span>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="filter-logic" value="OR" checked class="form-radio text-purple-500 h-4 w-4 bg-gray-700 border-gray-500" id="filter-logic-or">
+                    <span class="ml-2 text-white text-sm">Cualquiera (OR)</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="filter-logic" value="AND" class="form-radio text-purple-500 h-4 w-4 bg-gray-700 border-gray-500" id="filter-logic-and">
+                    <span class="ml-2 text-white text-sm">Todas (AND)</span>
+                </label>
+            </div>
+            
             <div class="flex flex-col sm:flex-row gap-4">
                 <input type="text" id="tag-filter-input" placeholder="Escribe etiquetas separadas por coma o espacio (ej: urgente, tarea)" 
                     class="flex-grow p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-purple-500 focus:border-purple-500 transition-colors duration-300"
@@ -98,7 +126,9 @@
                     Limpiar Filtro
                 </button>
             </div>
-            <p id="current-filter-status" class="text-sm text-gray-400 mt-2 hidden">Filtro(s) activo(s): <span id="active-tag" class="font-medium text-purple-400"></span></p>
+            <p id="current-filter-status" class="text-sm text-gray-400 mt-2 hidden">
+                Filtro (<span id="logic-indicator" class="font-bold text-purple-400">OR</span>) activo(s): <span id="active-tag" class="font-medium text-purple-400"></span>
+            </p>
         </div>
         
         <!-- Contenedor de Notas -->
@@ -259,7 +289,11 @@
                         saveNotesToLocalStorage(notesData);
                         
                         showStatusMessage(`Se importaron y fusionaron ${validImportedNotes.length} notas con éxito.`, 'success');
+                        
+                        updateTotalCount(); // NEW: Update total count
+                        renderUniqueTags(); // NEW: Render unique tags cloud
                         applyFilter();
+                        
                         // Cerrar modal después de una importación exitosa
                         document.getElementById('data-management-modal').classList.add('hidden');
                     } else {
@@ -278,7 +312,70 @@
         }
 
 
-        // --- FUNCIONES DE EDICIÓN Y ESTADO DE FORMULARIO ---
+        // --- FUNCIONES DE MANEJO DE ETIQUETAS Y ESTADO ---
+        
+        // Muestra el total de notas (Feature 1)
+        function updateTotalCount() {
+            const countEl = document.getElementById('total-notes-count');
+            if (countEl) {
+                countEl.textContent = `Total: ${notesData.length}`;
+            }
+        }
+        
+        // Renderiza la nube de etiquetas únicas (Feature 3)
+        function renderUniqueTags() {
+            const tagSet = new Set();
+            notesData.forEach(note => {
+                note.tags.forEach(tag => tagSet.add(tag));
+            });
+            
+            const tagListContainer = document.getElementById('existing-tags-list');
+            const cloudContainer = document.getElementById('unique-tags-cloud');
+            tagListContainer.innerHTML = '';
+            
+            const uniqueTags = Array.from(tagSet).sort();
+            
+            if (uniqueTags.length === 0) {
+                cloudContainer.classList.add('hidden');
+                return;
+            }
+
+            cloudContainer.classList.remove('hidden');
+
+            uniqueTags.forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.textContent = `#${tag}`;
+                // Estilo para tags en la nube (diferente al de las notas para distinción)
+                tagEl.className = 'inline-block bg-gray-700 text-gray-300 text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-gray-600 transition-colors duration-150';
+                tagEl.setAttribute('data-tag', tag);
+                
+                // Adjuntar listener para añadir al campo de entrada de la nota
+                tagEl.addEventListener('click', () => addTagToNoteInput(tag));
+                tagListContainer.appendChild(tagEl);
+            });
+        }
+        
+        // Añade una etiqueta al campo de entrada del formulario de nota/edición (Feature 3 logic)
+        function addTagToNoteInput(tag) {
+            const input = document.getElementById('note-tags-input');
+            
+            // Normalizar las etiquetas existentes del input
+            let existingTags = input.value.toLowerCase().split(/[,\s]+/)
+                                          .map(t => t.trim())
+                                          .filter(t => t.length > 0);
+
+            // Añadir la etiqueta si no está ya presente
+            if (!existingTags.includes(tag)) {
+                existingTags.push(tag);
+                // Usar ', ' como separador para actualizar el input
+                input.value = existingTags.join(', ');
+                showStatusMessage(`Etiqueta '#${tag}' añadida.`, 'success');
+            } else {
+                 showStatusMessage(`Etiqueta '#${tag}' ya está en el campo.`, 'error');
+            }
+            
+            input.focus();
+        }
 
         // Resetea el formulario al modo de creación
         function resetForm() {
@@ -348,6 +445,8 @@
             saveNotesToLocalStorage(notesData);
 
             resetForm(); // Limpiar inputs y resetear estado
+            updateTotalCount(); // NEW: Actualizar contador
+            renderUniqueTags(); // NEW: Actualizar la nube de etiquetas
             applyFilter();
             showStatusMessage("Nota guardada con éxito.", 'success');
             
@@ -375,6 +474,8 @@
             saveNotesToLocalStorage(notesData);
             
             resetForm(); // Limpiar inputs y resetear estado
+            updateTotalCount(); // NEW: Actualizar contador (aunque no debería cambiar en edición)
+            renderUniqueTags(); // NEW: Actualizar la nube de etiquetas
             applyFilter(); // Re-renderizar
             showStatusMessage("Nota actualizada con éxito.", 'success');
             
@@ -395,6 +496,8 @@
                 resetForm();
             }
 
+            updateTotalCount(); // NEW: Actualizar contador
+            renderUniqueTags(); // NEW: Actualizar la nube de etiquetas
             applyFilter();
             showStatusMessage("Nota eliminada.", 'success');
         }
@@ -412,7 +515,7 @@
             if (notes.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center p-8 bg-gray-700 rounded-xl text-gray-400 border border-dashed border-gray-600 transition-colors duration-300">
                                         <p class="mb-2 text-lg">No hay notas para mostrar.</p>
-                                        <p>${currentFilter ? 'Intenta limpiar el filtro o añadir una nota.' : 'Añade tu primera nota.'}</p>
+                                        <p>${currentFilter ? 'Intenta limpiar el filtro o ajustar la lógica de búsqueda.' : 'Añade tu primera nota.'}</p>
                                       </div>`;
                 return;
             }
@@ -454,7 +557,7 @@
                 container.appendChild(noteElement);
             });
             
-            // Re-adjuntar listeners de edición, eliminación y filtro
+            // Re-adjuntar listeners de edición, eliminación y filtro de etiquetas
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
@@ -469,7 +572,7 @@
                 });
             });
 
-            // MODIFICACIÓN: Nuevo comportamiento de filtro al hacer clic en etiqueta
+            // Comportamiento de alternancia de filtro al hacer clic en la etiqueta de la nota
             document.querySelectorAll('.tag').forEach(tagEl => {
                 tagEl.addEventListener('click', (e) => {
                     const newTag = e.currentTarget.getAttribute('data-tag');
@@ -490,7 +593,6 @@
                     }
 
                     // 3. Reestablecer el valor del input y del filtro global
-                    // Usar ', ' como separador para un mejor look and feel
                     const newFilterValue = activeFilters.join(', ');
                     filterInput.value = newFilterValue;
                     currentFilter = newFilterValue;
@@ -501,7 +603,7 @@
             });
         }
         
-        // Aplica el filtro actual a las notas
+        // Aplica el filtro actual a las notas (Feature 2 logic)
         function applyFilter() {
             // 1. Preprocesar la cadena de filtro
             const rawFilters = currentFilter.toLowerCase().trim();
@@ -512,19 +614,34 @@
                         .filter(tag => tag.length > 0)
             )];
 
-            // Actualizar la interfaz de estado del filtro
+            // 2. Determinar la lógica de filtrado (AND o OR)
+            const currentFilterLogic = document.getElementById('filter-logic-and').checked ? 'AND' : 'OR';
+
+            // 3. Actualizar la interfaz de estado del filtro
             const statusEl = document.getElementById('current-filter-status');
             const activeTagEl = document.getElementById('active-tag');
+            const logicIndicatorEl = document.getElementById('logic-indicator');
             
             if (activeFilters.length > 0) {
                 statusEl?.classList.remove('hidden'); 
-                // Muestra los filtros activos separados por ' O '
-                activeTagEl.textContent = activeFilters.join(' O '); 
+                logicIndicatorEl.textContent = currentFilterLogic;
+                // Muestra los filtros activos separados por ' Y ' o ' O '
+                activeTagEl.textContent = activeFilters.join(currentFilterLogic === 'AND' ? ' Y ' : ' O '); 
                 
-                // Lógica de filtrado OR: Muestra notas que tienen AL MENOS una de las etiquetas
-                const filteredNotes = notesData.filter(note => 
-                    activeFilters.some(filterTag => note.tags.includes(filterTag))
-                );
+                let filteredNotes;
+
+                if (currentFilterLogic === 'AND') {
+                    // Lógica de filtrado AND: Muestra notas que tienen TODAS las etiquetas
+                    filteredNotes = notesData.filter(note => 
+                        activeFilters.every(filterTag => note.tags.includes(filterTag))
+                    );
+                } else {
+                    // Lógica de filtrado OR: Muestra notas que tienen AL MENOS una de las etiquetas
+                    filteredNotes = notesData.filter(note => 
+                        activeFilters.some(filterTag => note.tags.includes(filterTag))
+                    );
+                }
+                
                 renderNotes(filteredNotes);
             } else {
                 statusEl?.classList.add('hidden'); 
@@ -539,6 +656,11 @@
             notesData = loadNotesFromLocalStorage();
             // Asegurarse de que las notas están ordenadas por fecha de creación (más reciente primero)
             notesData.sort((a, b) => b.createdAt - a.createdAt);
+            
+            // NEW: Inicializar nuevas características
+            updateTotalCount(); 
+            renderUniqueTags(); 
+            
             applyFilter();
             
             // 2. Escuchadores de eventos para el formulario principal
@@ -575,6 +697,10 @@
                 currentFilter = '';
                 applyFilter();
             });
+            
+            // NEW: Listeners para los botones de radio AND/OR
+            document.getElementById('filter-logic-or').addEventListener('change', applyFilter);
+            document.getElementById('filter-logic-and').addEventListener('change', applyFilter);
             
             // 4. Listeners de Exportar/Importar (dentro del modal)
             document.getElementById('export-notes-btn').addEventListener('click', exportNotesToJson);
