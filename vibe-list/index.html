@@ -11,14 +11,18 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
+        }
+        /* Estilos base: Modo Oscuro */
+        body {
+            background-color: #111827; /* gray-900 */
+            color: #f3f4f6; /* gray-100 */
         }
         .note-card {
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .note-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
         }
         .tag {
             cursor: pointer;
@@ -36,19 +40,25 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 transition-colors duration-300">
 
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-2 border-b pb-2">Bloc de Notas con Etiquetas</h1>
-        <p class="text-gray-500 mb-6">Escribe tus ideas, asígnales etiquetas y filtra al instante. Tus notas se guardan **localmente** en tu navegador.</p>
+    <div class="max-w-4xl mx-auto relative">
+        <!-- El botón de tema oscuro se elimina como se solicitó -->
+        
+        <h1 class="text-4xl font-extrabold text-gray-100 mb-2 border-b border-gray-700 pb-2">Bloc de Notas con Etiquetas</h1>
+        <p class="text-gray-400 mb-6">Escribe tus ideas, asígnales etiquetas y filtra al instante. Tus notas se guardan **localmente** en tu navegador.</p>
 
         <!-- Formulario de Nueva Nota -->
-        <div id="new-note-form" class="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-200">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Crear Nueva Entrada</h2>
+        <div id="new-note-form" class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-700 transition-colors duration-300">
+            <h2 class="text-2xl font-semibold text-gray-200 mb-4">Crear Nueva Entrada</h2>
             
-            <textarea id="note-text" placeholder="Escribe tu entrada de texto aquí..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-3 resize-y min-h-[100px]"></textarea>
+            <textarea id="note-text" placeholder="Escribe tu entrada de texto aquí..." 
+                class="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-3 resize-y min-h-[100px] transition-colors duration-300" 
+                aria-label="Contenido de la nota"></textarea>
             
-            <input type="text" id="note-tags-input" placeholder="Etiquetas (separadas por comas, ej: idea, urgente, proyecto)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-4">
+            <input type="text" id="note-tags-input" placeholder="Etiquetas (separadas por comas o espacios, ej: idea, urgente). Presiona Enter para guardar." 
+                class="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-4 transition-colors duration-300"
+                aria-label="Etiquetas de la nota">
             
             <button id="save-note-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-150">
                 Guardar Nota
@@ -56,21 +66,23 @@
         </div>
 
         <!-- Barra de Filtrado -->
-        <div class="bg-gray-100 p-4 rounded-xl shadow-inner mb-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-3">Filtrar por Etiquetas</h2>
+        <div class="bg-gray-800 p-4 rounded-xl shadow-inner mb-8 border border-gray-700 transition-colors duration-300">
+            <h2 class="text-xl font-semibold text-gray-200 mb-3">Filtrar por Etiquetas (Múltiples)</h2>
             <div class="flex flex-col sm:flex-row gap-4">
-                <input type="text" id="tag-filter-input" placeholder="Escribe una etiqueta para filtrar (ej: urgente)" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                <input type="text" id="tag-filter-input" placeholder="Escribe etiquetas separadas por coma o espacio (ej: urgente, tarea)" 
+                    class="flex-grow p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-purple-500 focus:border-purple-500 transition-colors duration-300"
+                    aria-label="Filtro de etiquetas">
                 <button id="clear-filter-btn" class="bg-purple-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-600 transition duration-150 whitespace-nowrap">
                     Limpiar Filtro
                 </button>
             </div>
-            <p id="current-filter-status" class="text-sm text-gray-500 mt-2 hidden">Filtro activo: <span id="active-tag" class="font-medium text-purple-700"></span></p>
+            <p id="current-filter-status" class="text-sm text-gray-400 mt-2 hidden">Filtro(s) activo(s): <span id="active-tag" class="font-medium text-purple-400"></span></p>
         </div>
 
         <!-- Contenedor de Notas -->
         <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Las notas se renderizarán aquí -->
-            <div id="loading-message" class="col-span-full text-center p-8 text-gray-500">Inicializando notas...</div>
+            <div id="loading-message" class="col-span-full text-center p-8 text-gray-400">Inicializando notas...</div>
         </div>
         
     </div>
@@ -109,11 +121,18 @@
 
         // --- FUNCIONES DE MANEJO DE DATOS ---
 
+        // Función central para guardar la nota
+        function attemptSaveNote() {
+            const text = document.getElementById('note-text').value;
+            const tags = document.getElementById('note-tags-input').value;
+            saveNote(text, tags);
+        }
+
         // Guarda una nueva nota en localStorage
         function saveNote(text, tags) {
             const noteText = text.trim();
             // Limpia, convierte a minúsculas y filtra etiquetas
-            const tagsArray = tags.toLowerCase().split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            const tagsArray = tags.toLowerCase().split(/[,\s]+/).map(tag => tag.trim()).filter(tag => tag.length > 0);
             
             if (noteText.length === 0) { 
                 console.warn("La entrada de texto está vacía.");
@@ -164,7 +183,7 @@
             }
 
             if (notes.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center p-8 bg-gray-50 rounded-xl text-gray-500 border border-dashed">
+                container.innerHTML = `<div class="col-span-full text-center p-8 bg-gray-700 rounded-xl text-gray-400 border border-dashed border-gray-600 transition-colors duration-300">
                                         <p class="mb-2 text-lg">No hay notas para mostrar.</p>
                                         <p>${currentFilter ? 'Intenta limpiar el filtro o añadir una nota.' : 'Añade tu primera nota.'}</p>
                                       </div>`;
@@ -174,23 +193,24 @@
             notes.forEach(note => {
                 // Crear un string de botones de etiquetas
                 const tagButtons = note.tags.map(tag => 
-                    `<span data-tag="${tag}" class="tag inline-block bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full mr-2 mb-1 hover:bg-blue-600">
+                    `<span data-tag="${tag}" class="tag inline-block bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-full mr-2 mb-1 hover:bg-blue-600 transition-colors duration-150">
                         #${tag}
                     </span>`
                 ).join('');
 
                 const noteElement = document.createElement('div');
-                noteElement.className = 'note-card bg-white p-5 rounded-xl shadow-md border border-gray-100 relative';
+                // Estilos para Dark Mode
+                noteElement.className = 'note-card bg-gray-800 p-5 rounded-xl shadow-md border border-gray-700 relative transition-colors duration-300';
                 noteElement.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
-                        <p class="text-gray-800 text-base leading-relaxed">${note.text}</p>
-                        <button data-id="${note.id}" class="delete-btn text-red-500 p-1 rounded-full hover:bg-red-100 transition duration-150 focus:outline-none ml-4" aria-label="Eliminar nota">
+                        <p class="text-gray-200 text-base leading-relaxed">${note.text}</p>
+                        <button data-id="${note.id}" class="delete-btn text-red-400 p-1 rounded-full hover:bg-red-900 transition duration-150 focus:outline-none ml-4" aria-label="Eliminar nota">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6h6v10H7V6z" clip-rule="evenodd" />
                             </svg>
                         </button>
                     </div>
-                    <div class="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center">
+                    <div class="mt-4 pt-3 border-t border-gray-700 flex flex-wrap items-center">
                         ${tagButtons}
                     </div>
                 `;
@@ -217,18 +237,30 @@
         
         // Aplica el filtro actual a las notas
         function applyFilter() {
-            const filterTag = currentFilter.toLowerCase().trim();
+            // 1. Preprocesar la cadena de filtro: dividir por coma o espacio, limpiar, convertir a minúsculas y filtrar vacíos.
+            const rawFilters = currentFilter.toLowerCase().trim();
             
+            // Divide por coma o espacio. Elimina duplicados.
+            const activeFilters = [...new Set(
+                rawFilters.split(/[,\s]+/)
+                        .map(tag => tag.trim())
+                        .filter(tag => tag.length > 0)
+            )];
+
             // Actualizar la interfaz de estado del filtro
             const statusEl = document.getElementById('current-filter-status');
             const activeTagEl = document.getElementById('active-tag');
-
-            if (filterTag) {
+            
+            // Usar la lista de filtros para la visualización y el filtrado
+            if (activeFilters.length > 0) {
                 statusEl?.classList.remove('hidden'); 
-                activeTagEl.textContent = filterTag;
+                // Muestra las etiquetas separadas por "O" para indicar la lógica OR
+                activeTagEl.textContent = activeFilters.join(' O '); 
                 
-                // Usar los datos de notesData (ya cargados y ordenados) para filtrar
-                const filteredNotes = notesData.filter(note => note.tags.includes(filterTag));
+                // 2. Lógica de filtrado OR: Muestra la nota si contiene CUALQUIERA de las etiquetas activas.
+                const filteredNotes = notesData.filter(note => 
+                    activeFilters.some(filterTag => note.tags.includes(filterTag))
+                );
                 renderNotes(filteredNotes);
             } else {
                 statusEl?.classList.add('hidden'); 
@@ -240,26 +272,42 @@
         // --- LÓGICA DE INICIALIZACIÓN PRINCIPAL ---
 
         function initializeApp() {
-            // Cargar datos iniciales
+            // 1. Cargar datos iniciales
             notesData = loadNotesFromLocalStorage();
             // Asegurar que estén ordenados por más reciente primero
             notesData.sort((a, b) => b.createdAt - a.createdAt);
             applyFilter();
 
-            // 1. Botón de Guardar Nota
-            document.getElementById('save-note-btn').addEventListener('click', () => {
-                const text = document.getElementById('note-text').value;
-                const tags = document.getElementById('note-tags-input').value;
-                saveNote(text, tags);
+            // 2. Listeners de eventos
+            const saveNoteBtn = document.getElementById('save-note-btn');
+            const noteTextInput = document.getElementById('note-text');
+            const noteTagsInput = document.getElementById('note-tags-input');
+
+            // Guardar al hacer clic
+            saveNoteBtn.addEventListener('click', attemptSaveNote);
+
+            // Guardar si se presiona "Enter" en el campo de texto de la nota (por conveniencia, pero requiere Shift+Enter para nuevas líneas)
+            noteTextInput.addEventListener('keydown', (e) => {
+                // Solo guardar si se presiona Enter y NO se presiona Shift (para permitir saltos de línea)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Evita el salto de línea por defecto
+                    noteTagsInput.focus(); // Mueve el foco al campo de etiquetas
+                }
             });
 
-            // 2. Campo de Entrada de Filtro
+            // Guardar si se presiona "Enter" en el campo de etiquetas
+            noteTagsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Evita el envío de formulario/otra acción por defecto
+                    attemptSaveNote();
+                }
+            });
+
             document.getElementById('tag-filter-input').addEventListener('input', (e) => {
                 currentFilter = e.target.value;
                 applyFilter();
             });
             
-            // 3. Botón de Limpiar Filtro
             document.getElementById('clear-filter-btn').addEventListener('click', () => {
                 document.getElementById('tag-filter-input').value = '';
                 currentFilter = '';
