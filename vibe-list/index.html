@@ -31,38 +31,60 @@
         .tag:hover {
             background-color: #375d7e;
         }
-        .delete-btn {
+        /* Botones de acción (Editar/Eliminar) solo visibles al pasar el ratón */
+        .action-btn {
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .note-card:hover .delete-btn {
+        .note-card:hover .action-btn {
             opacity: 1;
+        }
+        #status-message {
+            /* Asegura que el mensaje de estado esté visible */
+            min-width: 300px;
         }
     </style>
 </head>
 <body class="p-4 md:p-8 transition-colors duration-300">
 
     <div class="max-w-4xl mx-auto relative">
-        <!-- El botón de tema oscuro se elimina como se solicitó -->
         
-        <h1 class="text-4xl font-extrabold text-gray-100 mb-2 border-b border-gray-700 pb-2">Bloc de Notas con Etiquetas</h1>
+        <!-- Mensaje de Estado Temporal -->
+        <div id="status-message" class="fixed top-0 left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-lg shadow-xl text-center z-50 hidden transition-all duration-300 ease-out opacity-0"></div>
+
+        <!-- Encabezado y Botón de Configuración (Modal) -->
+        <div class="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
+            <h1 class="text-4xl font-extrabold text-gray-100">Bloc de Notas con Etiquetas</h1>
+            <!-- Botón para abrir el Modal de Gestión -->
+            <button id="open-modal-btn" class="text-gray-400 hover:text-white transition duration-150 p-2 rounded-full hover:bg-gray-700" aria-label="Abrir gestión de datos">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.962.585 2.038.585 3 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
         <p class="text-gray-400 mb-6">Escribe tus ideas, asígnales etiquetas y filtra al instante. Tus notas se guardan **localmente** en tu navegador.</p>
 
-        <!-- Formulario de Nueva Nota -->
+        <!-- Formulario de Nueva Nota/Edición -->
         <div id="new-note-form" class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-700 transition-colors duration-300">
-            <h2 class="text-2xl font-semibold text-gray-200 mb-4">Crear Nueva Entrada</h2>
+            <h2 id="form-title" class="text-2xl font-semibold text-gray-200 mb-4">Crear Nueva Entrada</h2>
             
             <textarea id="note-text" placeholder="Escribe tu entrada de texto aquí..." 
                 class="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-3 resize-y min-h-[100px] transition-colors duration-300" 
                 aria-label="Contenido de la nota"></textarea>
             
-            <input type="text" id="note-tags-input" placeholder="Etiquetas (separadas por comas o espacios, ej: idea, urgente). Presiona Enter para guardar." 
+            <input type="text" id="note-tags-input" placeholder="Etiquetas (separadas por comas o espacios, ej: idea, urgente). Presiona Enter para guardar/actualizar." 
                 class="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-4 transition-colors duration-300"
                 aria-label="Etiquetas de la nota">
             
-            <button id="save-note-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-150">
-                Guardar Nota
-            </button>
+            <div class="flex space-x-3">
+                <button id="submit-btn" class="flex-grow bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-150">
+                    Guardar Nota
+                </button>
+                <button id="reset-edit-btn" class="hidden bg-gray-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-700 transition duration-150" title="Cancelar edición">
+                    Cancelar
+                </button>
+            </div>
         </div>
 
         <!-- Barra de Filtrado -->
@@ -78,13 +100,44 @@
             </div>
             <p id="current-filter-status" class="text-sm text-gray-400 mt-2 hidden">Filtro(s) activo(s): <span id="active-tag" class="font-medium text-purple-400"></span></p>
         </div>
-
+        
         <!-- Contenedor de Notas -->
         <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Las notas se renderizarán aquí -->
             <div id="loading-message" class="col-span-full text-center p-8 text-gray-400">Inicializando notas...</div>
         </div>
         
+    </div>
+
+    <!-- Modal para Gestión de Datos (Inicialmente oculto) -->
+    <div id="data-management-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-40 flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl max-w-md w-full m-4 border border-gray-700">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                <h2 class="text-2xl font-semibold text-gray-200">Gestión de Datos</h2>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700 transition duration-150" aria-label="Cerrar ventana de gestión">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-gray-400 mb-4">Exporta tus notas para hacer una copia de seguridad o impórtalas para restaurar o fusionar datos.</p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <!-- Botón de Exportar -->
+                    <button id="export-notes-btn" class="flex-grow bg-emerald-600 text-white font-semibold py-3 rounded-lg hover:bg-emerald-700 transition duration-150">
+                        Exportar Notas (.json)
+                    </button>
+                    <!-- Botón y Entrada de Importar -->
+                    <label for="import-file" class="flex-grow bg-orange-600 text-white font-semibold py-3 rounded-lg hover:bg-orange-700 transition duration-150 text-center cursor-pointer">
+                        Importar Notas (.json)
+                    </label>
+                    <!-- El input de archivo se mantiene oculto -->
+                    <input type="file" id="import-file" accept=".json" class="hidden" aria-label="Cargar archivo JSON para importar notas">
+                </div>
+                <p class="text-xs text-gray-400 mt-2">La importación **fusiona** las notas existentes con los datos del archivo, evitando duplicados por ID. Es una operación de **adición**.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Script de Lógica LocalStorage -->
@@ -95,8 +148,37 @@
         
         let currentFilter = '';
         let notesData = [];
+        let editingNoteId = null; // ID de la nota en edición
+
+        // Referencias a elementos del DOM
+        const noteTextInput = document.getElementById('note-text');
+        const noteTagsInput = document.getElementById('note-tags-input');
 
         // --- FUNCIONES DE PERSISTENCIA LOCAL ---
+
+        /** Muestra un mensaje de estado temporal en la parte superior. */
+        function showStatusMessage(message, type = 'success') {
+            const msgEl = document.getElementById('status-message');
+            msgEl.textContent = message;
+            
+            // Configuración de estilos basada en el tipo
+            msgEl.className = 'fixed top-0 left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-lg shadow-xl text-center z-50 transition-all duration-300 ease-out';
+            if (type === 'success') {
+                msgEl.classList.add('bg-emerald-600', 'text-white');
+            } else if (type === 'error') {
+                msgEl.classList.add('bg-red-600', 'text-white');
+            }
+
+            // Mostrar el mensaje
+            msgEl.classList.remove('hidden', 'opacity-0');
+            
+            // Ocultar después de 4 segundos
+            setTimeout(() => {
+                msgEl.classList.add('opacity-0');
+                // Ocultar completamente después de la transición
+                setTimeout(() => msgEl.classList.add('hidden'), 300);
+            }, 4000);
+        }
 
         // Carga las notas desde localStorage
         function loadNotesFromLocalStorage() {
@@ -119,27 +201,142 @@
         }
 
 
-        // --- FUNCIONES DE MANEJO DE DATOS ---
+        // --- FUNCIONES DE EXPORTACIÓN / IMPORTACIÓN ---
 
-        // Función central para guardar la nota
-        function attemptSaveNote() {
-            const text = document.getElementById('note-text').value;
-            const tags = document.getElementById('note-tags-input').value;
-            saveNote(text, tags);
+        // Exporta todas las notas a un archivo JSON
+        function exportNotesToJson() {
+            if (notesData.length === 0) {
+                showStatusMessage("No hay notas para exportar.", 'error');
+                return;
+            }
+            const dataStr = JSON.stringify(notesData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            // Genera un nombre de archivo con la fecha actual
+            a.download = `notas_bloc_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatusMessage("Notas exportadas con éxito.", 'success');
         }
+
+        // Importa notas desde un archivo JSON y las fusiona con las existentes
+        function importNotesFromJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedNotes = JSON.parse(e.target.result);
+
+                    if (!Array.isArray(importedNotes)) {
+                        throw new Error("El archivo JSON no contiene un array de notas.");
+                    }
+                    
+                    // Validación y saneamiento básico de la estructura de la nota
+                    const validImportedNotes = importedNotes.filter(note => 
+                        note && typeof note.text === 'string' && Array.isArray(note.tags)
+                    ).map(note => ({
+                        id: crypto.randomUUID(), // Forzar nuevo ID para evitar colisiones
+                        text: String(note.text).trim(),
+                        // Limpiar y normalizar las etiquetas (minúsculas y sin vacíos)
+                        tags: note.tags.map(tag => String(tag).toLowerCase().trim()).filter(t => t.length > 0),
+                        createdAt: note.createdAt || new Date().getTime() // Usar fecha si existe, sino la actual
+                    }));
+
+                    if (validImportedNotes.length > 0) {
+                        const existingNotes = loadNotesFromLocalStorage();
+                        // Fusionar: Las nuevas notas se añaden al principio
+                        notesData = [...validImportedNotes, ...existingNotes];
+                        // Re-ordenar por fecha de creación
+                        notesData.sort((a, b) => b.createdAt - a.createdAt);
+                        
+                        saveNotesToLocalStorage(notesData);
+                        
+                        showStatusMessage(`Se importaron y fusionaron ${validImportedNotes.length} notas con éxito.`, 'success');
+                        applyFilter();
+                        // Cerrar modal después de una importación exitosa
+                        document.getElementById('data-management-modal').classList.add('hidden');
+                    } else {
+                        throw new Error("El archivo no contenía notas válidas para importar.");
+                    }
+
+                } catch (error) {
+                    console.error("Error al procesar el archivo JSON:", error.message);
+                    showStatusMessage(`Error en la importación: ${error.message}`, 'error');
+                } finally {
+                    // Limpiar el input para permitir importar el mismo archivo de nuevo
+                    event.target.value = ''; 
+                }
+            };
+            reader.readAsText(file);
+        }
+
+
+        // --- FUNCIONES DE EDICIÓN Y ESTADO DE FORMULARIO ---
+
+        // Resetea el formulario al modo de creación
+        function resetForm() {
+            noteTextInput.value = '';
+            noteTagsInput.value = '';
+            
+            editingNoteId = null;
+            document.getElementById('form-title').textContent = 'Crear Nueva Entrada';
+            document.getElementById('submit-btn').textContent = 'Guardar Nota';
+            document.getElementById('reset-edit-btn').classList.add('hidden');
+        }
+
+        // Inicia el modo de edición
+        function startEdit(noteId) {
+            const note = notesData.find(n => n.id === noteId);
+            if (!note) return;
+
+            // 1. Setear el estado de edición
+            editingNoteId = noteId;
+
+            // 2. Llenar el formulario con los datos de la nota
+            noteTextInput.value = note.text;
+            noteTagsInput.value = note.tags.join(', ');
+
+            // 3. Cambiar la apariencia del formulario
+            document.getElementById('form-title').textContent = 'Editar Entrada Existente';
+            document.getElementById('submit-btn').textContent = 'Actualizar Nota';
+            document.getElementById('reset-edit-btn').classList.remove('hidden');
+
+            // 4. Mover el foco al formulario (para mejor UX)
+            document.getElementById('new-note-form').scrollIntoView({ behavior: 'smooth' });
+            noteTextInput.focus();
+        }
+
+        // Función central para guardar o actualizar la nota
+        function attemptSaveNote() {
+            const text = noteTextInput.value;
+            const tags = noteTagsInput.value;
+            
+            if (editingNoteId) {
+                updateNote(editingNoteId, text, tags);
+            } else {
+                saveNote(text, tags);
+            }
+        }
+
+        // --- FUNCIONES DE MANEJO DE DATOS ---
 
         // Guarda una nueva nota en localStorage
         function saveNote(text, tags) {
             const noteText = text.trim();
-            // Limpia, convierte a minúsculas y filtra etiquetas
             const tagsArray = tags.toLowerCase().split(/[,\s]+/).map(tag => tag.trim()).filter(tag => tag.length > 0);
             
             if (noteText.length === 0) { 
-                console.warn("La entrada de texto está vacía.");
+                showStatusMessage("La entrada de texto está vacía. No se guardó.", 'error');
                 return;
             }
 
-            // Crear un ID simple basado en el tiempo para unicidad local
             const newNote = {
                 id: crypto.randomUUID(), 
                 text: noteText,
@@ -147,29 +344,59 @@
                 createdAt: new Date().getTime()
             };
 
-            // Cargar, añadir, guardar y re-renderizar
-            notesData = loadNotesFromLocalStorage();
-            notesData.unshift(newNote); // Añadir al principio para que se muestre primero
+            notesData.unshift(newNote); 
             saveNotesToLocalStorage(notesData);
 
-            document.getElementById('note-text').value = '';
-            document.getElementById('note-tags-input').value = '';
-            
-            // Re-renderizar después de guardar
+            resetForm(); // Limpiar inputs y resetear estado
             applyFilter();
+            showStatusMessage("Nota guardada con éxito.", 'success');
+            
+            // Mover el enfoque de vuelta al campo de texto principal
+            noteTextInput.focus();
+        }
+        
+        // Actualiza una nota existente
+        function updateNote(id, text, tags) {
+            const noteText = text.trim();
+            const tagsArray = tags.toLowerCase().split(/[,\s]+/).map(tag => tag.trim()).filter(tag => tag.length > 0);
+
+            if (noteText.length === 0) { 
+                showStatusMessage("La entrada de texto está vacía. No se actualizó.", 'error');
+                return;
+            }
+
+            const index = notesData.findIndex(n => n.id === id);
+            if (index === -1) return;
+
+            // Actualizar el objeto en memoria
+            notesData[index].text = noteText;
+            notesData[index].tags = tagsArray;
+
+            saveNotesToLocalStorage(notesData);
+            
+            resetForm(); // Limpiar inputs y resetear estado
+            applyFilter(); // Re-renderizar
+            showStatusMessage("Nota actualizada con éxito.", 'success');
+            
+            // Mover el enfoque de vuelta al campo de texto principal
+            noteTextInput.focus();
         }
 
         // Elimina una nota de localStorage
         function deleteNote(noteId) {
             if (!noteId) return; 
 
-            // Cargar, filtrar, guardar y re-renderizar
             notesData = loadNotesFromLocalStorage();
             notesData = notesData.filter(note => note.id !== noteId);
             saveNotesToLocalStorage(notesData);
             
-            // Re-renderizar después de eliminar
+            // Si estábamos editando la nota eliminada, resetear el formulario
+            if (editingNoteId === noteId) {
+                resetForm();
+            }
+
             applyFilter();
+            showStatusMessage("Nota eliminada.", 'success');
         }
         
         // Renderiza el array de notas en el DOM
@@ -199,16 +426,26 @@
                 ).join('');
 
                 const noteElement = document.createElement('div');
-                // Estilos para Dark Mode
                 noteElement.className = 'note-card bg-gray-800 p-5 rounded-xl shadow-md border border-gray-700 relative transition-colors duration-300';
+                // Usar <br> para respetar los saltos de línea del usuario
                 noteElement.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
-                        <p class="text-gray-200 text-base leading-relaxed">${note.text}</p>
-                        <button data-id="${note.id}" class="delete-btn text-red-400 p-1 rounded-full hover:bg-red-900 transition duration-150 focus:outline-none ml-4" aria-label="Eliminar nota">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6h6v10H7V6z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
+                        <p class="text-gray-200 text-base leading-relaxed">${note.text.replace(/\n/g, '<br>')}</p>
+                        
+                        <div class="flex space-x-2 absolute top-4 right-4 z-10">
+                            <!-- Botón de Editar -->
+                            <button data-id="${note.id}" class="edit-btn action-btn text-blue-400 p-1 rounded-full hover:bg-blue-900 transition duration-150 focus:outline-none" aria-label="Editar nota">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </button>
+                            <!-- Botón de Eliminar -->
+                            <button data-id="${note.id}" class="delete-btn action-btn text-red-400 p-1 rounded-full hover:bg-red-900 transition duration-150 focus:outline-none" aria-label="Eliminar nota">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6h6v10H7V6z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-gray-700 flex flex-wrap items-center">
                         ${tagButtons}
@@ -217,7 +454,7 @@
                 container.appendChild(noteElement);
             });
             
-            // Re-adjuntar listeners de eliminación y filtro después de renderizar
+            // Re-adjuntar listeners de edición, eliminación y filtro
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
@@ -225,11 +462,40 @@
                 });
             });
 
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    startEdit(id);
+                });
+            });
+
+            // MODIFICACIÓN: Nuevo comportamiento de filtro al hacer clic en etiqueta
             document.querySelectorAll('.tag').forEach(tagEl => {
                 tagEl.addEventListener('click', (e) => {
-                    const tag = e.currentTarget.getAttribute('data-tag');
-                    document.getElementById('tag-filter-input').value = tag;
-                    currentFilter = tag;
+                    const newTag = e.currentTarget.getAttribute('data-tag');
+                    const filterInput = document.getElementById('tag-filter-input');
+                    
+                    // 1. Obtener filtros activos y normalizarlos desde el input actual
+                    const rawFilters = filterInput.value.toLowerCase().trim();
+                    let activeFilters = rawFilters.split(/[,\s]+/)
+                                                  .map(tag => tag.trim())
+                                                  .filter(tag => tag.length > 0);
+                    
+                    // 2. Toggle: Añadir si no existe, quitar si ya existe
+                    const tagIndex = activeFilters.indexOf(newTag);
+                    if (tagIndex === -1) {
+                        activeFilters.push(newTag); // Añadir la nueva etiqueta
+                    } else {
+                        activeFilters.splice(tagIndex, 1); // Quitar la etiqueta existente (Toggle)
+                    }
+
+                    // 3. Reestablecer el valor del input y del filtro global
+                    // Usar ', ' como separador para un mejor look and feel
+                    const newFilterValue = activeFilters.join(', ');
+                    filterInput.value = newFilterValue;
+                    currentFilter = newFilterValue;
+                    
+                    // 4. Aplicar el nuevo filtro
                     applyFilter();
                 });
             });
@@ -237,10 +503,9 @@
         
         // Aplica el filtro actual a las notas
         function applyFilter() {
-            // 1. Preprocesar la cadena de filtro: dividir por coma o espacio, limpiar, convertir a minúsculas y filtrar vacíos.
+            // 1. Preprocesar la cadena de filtro
             const rawFilters = currentFilter.toLowerCase().trim();
             
-            // Divide por coma o espacio. Elimina duplicados.
             const activeFilters = [...new Set(
                 rawFilters.split(/[,\s]+/)
                         .map(tag => tag.trim())
@@ -251,20 +516,18 @@
             const statusEl = document.getElementById('current-filter-status');
             const activeTagEl = document.getElementById('active-tag');
             
-            // Usar la lista de filtros para la visualización y el filtrado
             if (activeFilters.length > 0) {
                 statusEl?.classList.remove('hidden'); 
-                // Muestra las etiquetas separadas por "O" para indicar la lógica OR
+                // Muestra los filtros activos separados por ' O '
                 activeTagEl.textContent = activeFilters.join(' O '); 
                 
-                // 2. Lógica de filtrado OR: Muestra la nota si contiene CUALQUIERA de las etiquetas activas.
+                // Lógica de filtrado OR: Muestra notas que tienen AL MENOS una de las etiquetas
                 const filteredNotes = notesData.filter(note => 
                     activeFilters.some(filterTag => note.tags.includes(filterTag))
                 );
                 renderNotes(filteredNotes);
             } else {
                 statusEl?.classList.add('hidden'); 
-                // Si no hay filtro, renderizar todos los datos
                 renderNotes(notesData);
             }
         }
@@ -274,35 +537,34 @@
         function initializeApp() {
             // 1. Cargar datos iniciales
             notesData = loadNotesFromLocalStorage();
-            // Asegurar que estén ordenados por más reciente primero
+            // Asegurarse de que las notas están ordenadas por fecha de creación (más reciente primero)
             notesData.sort((a, b) => b.createdAt - a.createdAt);
             applyFilter();
+            
+            // 2. Escuchadores de eventos para el formulario principal
+            const saveNoteBtn = document.getElementById('submit-btn');
+            const resetEditBtn = document.getElementById('reset-edit-btn');
 
-            // 2. Listeners de eventos
-            const saveNoteBtn = document.getElementById('save-note-btn');
-            const noteTextInput = document.getElementById('note-text');
-            const noteTagsInput = document.getElementById('note-tags-input');
-
-            // Guardar al hacer clic
             saveNoteBtn.addEventListener('click', attemptSaveNote);
+            resetEditBtn.addEventListener('click', resetForm);
 
-            // Guardar si se presiona "Enter" en el campo de texto de la nota (por conveniencia, pero requiere Shift+Enter para nuevas líneas)
+            // Manejo de la tecla 'Enter' en el formulario de la nota
             noteTextInput.addEventListener('keydown', (e) => {
-                // Solo guardar si se presiona Enter y NO se presiona Shift (para permitir saltos de línea)
                 if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault(); // Evita el salto de línea por defecto
-                    noteTagsInput.focus(); // Mueve el foco al campo de etiquetas
+                    e.preventDefault(); 
+                    noteTagsInput.focus();
                 }
             });
 
-            // Guardar si se presiona "Enter" en el campo de etiquetas
+            // Manejo de la tecla 'Enter' en el campo de etiquetas
             noteTagsInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // Evita el envío de formulario/otra acción por defecto
+                    e.preventDefault();
                     attemptSaveNote();
                 }
             });
 
+            // 3. Listeners de la barra de filtro
             document.getElementById('tag-filter-input').addEventListener('input', (e) => {
                 currentFilter = e.target.value;
                 applyFilter();
@@ -313,6 +575,28 @@
                 currentFilter = '';
                 applyFilter();
             });
+            
+            // 4. Listeners de Exportar/Importar (dentro del modal)
+            document.getElementById('export-notes-btn').addEventListener('click', exportNotesToJson);
+            document.getElementById('import-file').addEventListener('change', importNotesFromJson);
+
+            // 5. Lógica del Modal (Gestión de Datos)
+            const modal = document.getElementById('data-management-modal');
+            document.getElementById('open-modal-btn').addEventListener('click', () => {
+                modal.classList.remove('hidden');
+            });
+            document.getElementById('close-modal-btn').addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+            // Cerrar modal al hacer clic fuera de la ventana (en el overlay)
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // Asegurar que el formulario esté en modo creación al inicio
+            resetForm();
         }
 
         // Ejecutar la aplicación al cargar el script
